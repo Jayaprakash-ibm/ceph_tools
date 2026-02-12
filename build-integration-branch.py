@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 
 """
-Builds integration branches by merging PRs found by label or by number.
+Builds integration branches by merging PRs found by numbers.
 
 Prerequisites:
   - GitHub CLI (`gh`): https://cli.github.com/
     Then run: `gh auth login`
 
 Usage:
-  ./build-integration-branch.py my-label
   ./build-integration-branch.py --pr 1234,5678,9012
   ./build-integration-branch.py my-label --pr 1234,5678
-  ./build-integration-branch.py --pr 1234,5678 --branch-name my-test --no-date
+  ./build-integration-branch.py --pr 66055,66069,66240 
+        --distros "centos9 rocky10 jammy noble" 
+        --archs "x86_64" 
+        --branch-name "wip-rocky10-branch-of-the-day"
 """
 
 from __future__ import annotations
@@ -23,10 +25,10 @@ import subprocess
 import sys
 import time
 
-TIME_FORMAT = '%Y-%m-%d-%H%M'
-CODENAMES = 'mimic nautilus octopus pacific quincy reef squid tentacle'
+TIME_FORMAT = '%Y-%m-%d-%s'
+CODENAMES = 'quincy reef squid tentacle'
 REPO = "ceph/ceph"
-PR_FIELDS = 'number,title,url,state,headRefName,headRepository'
+PR_FIELDS = 'number,title,url,state,headRefName'
 MAX_RETRIES = 5
 RETRY_DELAY = 3
 
@@ -93,27 +95,29 @@ def fetch_prs(label, pr_numbers, repo):
     return prs
 
 
-def merge_pr(pr):
-    head_repo = pr.get('headRepository')
-    if not head_repo or not head_repo.get('url'):
-        raise Exception(
-            f"PR#{pr['number']} repo unavailable (fork deleted?)")
-    pr_url = head_repo['url'] + '.git'
-    pr_ref = pr['headRefName']
-    print(f"--- pr {pr['number']} --- pulling {pr_url} branch {pr_ref}")
+def merge_pr(pr, repo):
+    num = pr['number']
+    repo_url = f'https://github.com/{repo}.git'
+    ref = f'refs/pull/{num}/head'
+    local_ref = f'prs/{num}'
+    print(f'--- pr {num} --- fetching {repo_url} {ref}')
 
     for attempt in range(1, MAX_RETRIES + 1):
-        rc = git('pull', '--no-ff', '--no-edit', pr_url, pr_ref).returncode
+        rc = git('fetch', repo_url, f'+{ref}:{local_ref}').returncode
         if rc == 0:
-            return
+            break
         elif rc == 1:
             print(f"  retrying ({attempt}/{MAX_RETRIES})...")
             time.sleep(RETRY_DELAY)
-        elif rc == 128:
-            raise Exception(f"Merge conflict on PR#{pr['number']}")
         else:
-            raise Exception(f"Pull failed for PR#{pr['number']} (rc={rc})")
-    raise Exception(f"PR#{pr['number']} failed after {MAX_RETRIES} retries")
+            raise Exception(f"Fetch failed for PR#{num} (rc={rc})")
+    else:
+        raise Exception(f"PR#{num} failed after {MAX_RETRIES} retries")
+
+    rc = git('merge', '--no-ff', '--no-edit',
+             '-m', f'Merge branch {local_ref}', local_ref).returncode
+    if rc != 0:
+        raise Exception(f"Merge conflict on PR#{num}")
 
 
 def parse_args():
@@ -162,7 +166,7 @@ def main():
 
     try:
         for pr in prs:
-            merge_pr(pr)
+            merge_pr(pr, cli.repo)
     except Exception as e:
         print(f'--- error: {e}')
         git('merge', '--abort', capture_output=True)
@@ -170,15 +174,13 @@ def main():
         git('branch', '-D', branch, capture_output=True)
         sys.exit(1)
 
-    # Final commit message with merged branch refs and trailers
-    if prs:
-        refs = ', '.join(pr['headRefName'] for pr in prs)
-        cmd = ['git', 'commit', '--allow-empty', '--amend',
-               '-m', f'Merged branches {refs}']
-        if cli.trailers:
-            cmd.extend(f'--trailer={t}' for t in cli.trailers)
-        if run(cmd).returncode != 0:
-            sys.exit('Failed to amend final commit!')
+    refs = ', '.join(f"prs/{pr['number']}" for pr in prs)
+    message = 'Merged branches ' + refs
+    if cli.trailers:
+        message += '\n' + '\n'.join(cli.trailers)
+    cmd = ['git', 'commit', '--allow-empty', '--amend', '-m', message]
+    if run(cmd).returncode != 0:
+        sys.exit('Failed to amend final commit!')
 
     print('--- done. these PRs were included:')
     for pr in prs:
