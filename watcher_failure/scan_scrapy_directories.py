@@ -73,7 +73,7 @@ def scan_scrapy_directories(
             rf"{suite_pat}(?:-[^-]+)*"
             rf"(?=-distro-)"                   # Lookahead for -distro-
             rf"(?:-release)?-distro-"
-            rf"{re.escape(flavor)}-smithi$"
+            rf"{re.escape(flavor)}-(?:smithi|trial)$"
         )
     else:
         # we expect explicit -version before -distro-
@@ -83,7 +83,7 @@ def scan_scrapy_directories(
             rf"{suite_pat}(?:-[^-]+)*"
             rf"-{re.escape(version)}"
             rf"(?:-release)?-distro-"
-            rf"{re.escape(flavor)}-smithi$"
+            rf"{re.escape(flavor)}-(?:smithi|trial)$"
         )
 
     regex = re.compile(pattern)
@@ -94,12 +94,15 @@ def scan_scrapy_directories(
     try:
         for entry in os.scandir(base):
             if not entry.is_dir():
+                logging.debug("Skipping %s: not a directory", entry.name)
                 continue
             m = regex.match(entry.name)
             if not m:
+                logging.debug("Skipping %s: does not match pattern %s", entry.name, pattern)
                 if entry.name.startswith('skanta-2025-05-22'):
                     logging.debug("Skipping %s: does not match regex %s", entry.name, pattern)
                 continue
+            logging.debug("Directory %s matched regex", entry.name)
             if version == "main":
                 name_before_distro = entry.name.split("-distro-")[0]
                 contains_known_version = any(f"-{ver}" in name_before_distro for ver in ["reef", "tentacle", "quincy", "squid"])

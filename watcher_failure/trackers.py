@@ -4,7 +4,7 @@ trackers.py – helper for mapping teuthology/ceph test failure strings ⇢ Ceph
 
 Key features
 ------------
-* Read creds from ``~/.redmin``
+* Read creds from ``~/.redmine``
 * Aggressively **normalise** noisy failure strings (timestamps, daemon ids, long
   numbers, log‑level tags …) so the search query is generic but still
   meaningful.
@@ -36,9 +36,10 @@ class RedmineConnector:
     # ---------------------------------------------------------------------
     def __init__(
         self,
-        config_path: str | Path = "~/.redmin",
+        config_path: str | Path = "~/.redmine",
         cache_file: str | Path = "tracker_cache.json",
     ) -> None:
+        logger.debug("Loading Redmine config from: %s", config_path)
         self.config = self._load_config(config_path)
         self.cache_path = (
             Path(cache_file).expanduser()
@@ -117,6 +118,7 @@ class RedmineConnector:
     @staticmethod
     def _load_config(path: str | Path) -> configparser.ConfigParser:
         cfg = configparser.ConfigParser()
+        logging.debug("Reading config file: %s contents:\n%s", path, Path("/home/nmordch/.redmine").read_text())
         cfg.read(Path(path).expanduser())
         return cfg
 

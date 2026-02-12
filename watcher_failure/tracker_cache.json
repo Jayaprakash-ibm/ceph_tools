@@ -151,5 +151,134 @@
     "issue_id": 21589,
     "link": "https://tracker.ceph.com/issues/21589"
   },
-  "[':stderr:   Running command git clone --filter=blob:none -q https://github.com/sebastian-philipp/registries-conf-ctl /tmp/pip-req-build-cob8u1ib', 'Cloning https://github.com/sebastian-philipp/registries-conf-ctl to ./pip-req-build-cob8u1ib', 'ERROR: Command errored out with exit status 128: git clone --filter=blob:none -q https://github.com/sebastian-philipp/registries-conf-ctl /tmp/pip-req-build-cob8u1ib Check the logs for full command output.', 'WARNING: Discarding git+https://github.com/sebastian-philipp/registries-conf-ctl. Command errored out with exit status 128: git clone --filter=blob:none -q https://github.com/sebastian-philipp/registries-conf-ctl /tmp/pip-req-build-cob8u1ib Check the logs for full command output.', \"You can inspect what was checked out with 'git status'\", \"and retry with 'git restore --source=HEAD :/'\", 'error: RPC failed; HTTP 500 curl 22 The requested URL returned error: 500', 'fatal: could not fetch de1d5d9cff8ff400110e9bc0d2bd55c3a01bf62f from promisor remote', \"fatal: expected 'packfile'\", 'stdout: Collecting git+https://github.com/sebastian-philipp/registries-conf-ctl', 'warning: Clone succeeded, but checkout failed.']": {}
+  "Test failure: test_list_enabled_module (tasks.mgr.dashboard.test_mgr_module.MgrModuleTest.test_list_enabled_module)": {
+    "issue_id": 62972,
+    "link": "https://tracker.ceph.com/issues/62972"
+  },
+  "Command failed (workunit test post-file.sh) on smithi000 with status 255: 'mkdir -p -- /home/ubuntu/cephtest/mnt.0/client.0/tmp && cd -- /home/ubuntu/cephtest/mnt.0/client.0/tmp && CEPH_CLI_TEST_DUP_COMMAND=1 CEPH_REF=XXXXXXXXXXXXXXXXXX TESTDIR=\"/home/ubuntu/cephtest\" CEPH_ARGS=\"--cluster ceph\" CEPH_ID=\"0\" PATH=$PATH:/usr/sbin CEPH_BASE=/home/ubuntu/cephtest/clone.client.0 CEPH_ROOT=/home/ubuntu/cephtest/clone.client.0 CEPH_MNT=/home/ubuntu/cephtest/mnt.0 adjust-ulimits ceph-coverage /home/ubuntu/cephtest/archive/coverage timeout 3h /home/ubuntu/cephtest/clone.client.0/qa/workunits/post-file.sh'": {
+    "issue_id": 74517,
+    "link": "https://tracker.ceph.com/issues/74517"
+  },
+  "b'2026-02-02T08:58:01.577 DEBUG:teuthology.exit:Finished running handlers'": {},
+  "Timeout 3h running clone.client.0/qa/standalone/misc/test-ceph-helpers.sh": {
+    "issue_id": 74004,
+    "link": "https://tracker.ceph.com/issues/74004"
+  },
+  "Test failure: test_standby (tasks.mgr.test_prometheus.TestPrometheus.test_standby)": {
+    "issue_id": 74149,
+    "link": "https://tracker.ceph.com/issues/74149"
+  },
+  "Failed to reconnect to smithi000": {},
+  "Command failed on smithi000 with status 4: 'sudo /home/ubuntu/cephtest/cephadm --image quay.ceph.io/ceph-ci/ceph:c6a805d6f4284d36e2bcdc033bd3f0eb17b1a704 shell -c /etc/ceph/ceph.conf -k /etc/ceph/ceph.client.admin.keyring --fsid 7bdbc054-ffe4-11f0-b406-d404e6e7d460 -- bash -c \\'set -e\\nset -x\\nceph orch apply node-exporter\\nceph orch apply grafana\\nceph orch apply alertmanager\\nceph orch apply prometheus\\nsleep 240\\nceph orch ls\\nceph orch ps\\nceph orch host ls\\nMON_DAEMON=$(ceph orch ps --daemon-type mon -f json | jq -r \\'\"\\'\"\\'last | .daemon_name\\'\"\\'\"\\')\\nGRAFANA_HOST=$(ceph orch ps --daemon-type grafana -f json | jq -e \\'\"\\'\"\\'.[]\\'\"\\'\"\\' | jq -r \\'\"\\'\"\\'.hostname\\'\"\\'\"\\')\\nPROM_HOST=$(ceph orch ps --daemon-type prometheus -f json | jq -e \\'\"\\'\"\\'.[]\\'\"\\'\"\\' | jq -r \\'\"\\'\"\\'.hostname\\'\"\\'\"\\')\\nALERTM_HOST=$(ceph orch ps --daemon-type alertmanager -f json | jq -e \\'\"\\'\"\\'.[]\\'\"\\'\"\\' | jq -r \\'\"\\'\"\\'.hostname\\'\"\\'\"\\')\\nGRAFANA_IP=$(ceph orch host ls -f json | jq -r --arg GRAFANA_HOST \"$GRAFANA_HOST\" \\'\"\\'\"\\'.[] | select(.hostname==$GRAFANA_HOST) | .addr\\'\"\\'\"\\')\\nPROM_IP=$(ceph orch host ls -f json | jq -r --arg PROM_HOST \"$PROM_HOST\" \\'\"\\'\"\\'.[] | select(.hostname==$PROM_HOST) | .addr\\'\"\\'\"\\')\\nALERTM_IP=$(ceph orch host ls -f json | jq -r --arg ALERTM_HOST \"$ALERTM_HOST\" \\'\"\\'\"\\'.[] | select(.hostname==$ALERTM_HOST) | .addr\\'\"\\'\"\\')\\n# check each host node-exporter metrics endpoint is responsive\\nALL_HOST_IPS=$(ceph orch host ls -f json | jq -r \\'\"\\'\"\\'.[] | .addr\\'\"\\'\"\\')\\nfor ip in $ALL_HOST_IPS; do\\n  curl -s http://${ip}:9100/metric\\ndone\\n# check grafana endpoints are responsive and database health is okay\\ncurl -k -s https://${GRAFANA_IP}:3000/api/health\\ncurl -k -s https://${GRAFANA_IP}:3000/api/health | jq -e \\'\"\\'\"\\'.database == \"ok\"\\'\"\\'\"\\'\\n# stop mon daemon in order to trigger an alert\\nceph orch daemon stop $MON_DAEMON\\nsleep 120\\n# check prometheus endpoints are responsive and mon down alert is firing\\ncurl -s http://${PROM_IP}:9095/api/v1/status/config\\ncurl -s http://${PROM_IP}:9095/api/v1/status/config | jq -e \\'\"\\'\"\\'.status == \"success\"\\'\"\\'\"\\'\\ncurl -s http://${PROM_IP}:9095/api/v1/alerts\\ncurl -s http://${PROM_IP}:9095/api/v1/alerts | jq -e \\'\"\\'\"\\'.data | .alerts | .[] | select(.labels | .alertname == \"CephMonDown\") | .state == \"firing\"\\'\"\\'\"\\'\\n# check alertmanager endpoints are responsive and mon down alert is active\\ncurl -s http://${ALERTM_IP}:9093/api/v2/status\\ncurl -s http://${ALERTM_IP}:9093/api/v2/alerts\\ncurl -s http://${ALERTM_IP}:9093/api/v2/alerts | jq -e \\'\"\\'\"\\'.[] | select(.labels | .alertname == \"CephMonDown\") | .status | .state == \"active\"\\'\"\\'\"\\'\\n# check prometheus metrics endpoint is not empty and make sure we can get metrics\\nMETRICS_URL=$(ceph mgr services | jq -r .prometheus)\\n[ -n \"$METRICS_URL\" ] || exit 1\\ncurl -s \"${METRICS_URL}metrics\" | grep -q \\'\"\\'\"\\'^ceph_health_status\\'\"\\'\"\\'\\n\\''": {},
+  "Command failed on smithi000 with status 1: 'sudo /home/ubuntu/cephtest/cephadm --image quay.ceph.io/ceph-ci/ceph:c6a805d6f4284d36e2bcdc033bd3f0eb17b1a704 shell -c /etc/ceph/ceph.conf -k /etc/ceph/ceph.client.admin.keyring --fsid 5d51726a-ffe4-11f0-8060-d404e6e7d460 -- bash -c \\'set -ex\\n# since we don\\'\"\\'\"\\'t know the real hostnames before the test, the next\\n# bit is in order to replace the fake hostnames \"host.a/b/c\" with\\n# the actual names cephadm knows the host by within the mon spec\\nceph orch host ls --format json | jq -r \\'\"\\'\"\\'.[] | .hostname\\'\"\\'\"\\' > realnames\\necho $\\'\"\\'\"\\'host.a\\\\nhost.b\\\\nhost.c\\'\"\\'\"\\' > fakenames\\necho $\\'\"\\'\"\\'a\\\\nb\\\\nc\\'\"\\'\"\\' > mon_ids\\necho $\\'\"\\'\"\\'{datacenter=a}\\\\n{datacenter=b,rack=2}\\\\n{datacenter=a,rack=3}\\'\"\\'\"\\' > crush_locs\\nceph orch ls --service-name mon --export > mon.yaml\\nMONSPEC=`cat mon.yaml`\\necho \"$MONSPEC\"\\nwhile read realname <&3 && read fakename <&4; do\\n  MONSPEC=\"${MONSPEC//$fakename/$realname}\"\\ndone 3<realnames 4<fakenames\\necho \"$MONSPEC\" > mon.yaml\\ncat mon.yaml\\n# now the spec should have the real hostnames, so let\\'\"\\'\"\\'s re-apply\\nceph orch apply -i mon.yaml\\nsleep 90\\nceph orch ps --refresh\\nceph orch ls --service-name mon --export > mon.yaml; ceph orch apply -i mon.yaml\\nsleep 90\\nceph mon dump\\nceph mon dump --format json\\n# verify all the crush locations got set from \"ceph mon dump\" output\\nwhile read monid <&3 && read crushloc <&4; do\\n  ceph mon dump --format json | jq --arg monid \"$monid\" --arg crushloc \"$crushloc\" -e \\'\"\\'\"\\'.mons | .[] | select(.name == $monid) | .crush_location == $crushloc\\'\"\\'\"\\'\\ndone 3<mon_ids 4<crush_locs\\n\\''": {},
+  "Command failed (workunit test cephtool/test.sh) on smithi000 with status 1: 'mkdir -p -- /home/ubuntu/cephtest/mnt.0/client.0/tmp && cd -- /home/ubuntu/cephtest/mnt.0/client.0/tmp && CEPH_CLI_TEST_DUP_COMMAND=1 CEPH_REF=XXXXXXXXXXXXXXXXXX TESTDIR=\"/home/ubuntu/cephtest\" CEPH_ARGS=\"--cluster ceph\" CEPH_ID=\"0\" PATH=$PATH:/usr/sbin CEPH_BASE=/home/ubuntu/cephtest/clone.client.0 CEPH_ROOT=/home/ubuntu/cephtest/clone.client.0 CEPH_MNT=/home/ubuntu/cephtest/mnt.0 adjust-ulimits ceph-coverage /home/ubuntu/cephtest/archive/coverage timeout 3h /home/ubuntu/cephtest/clone.client.0/qa/workunits/cephtool/test.sh'": {
+    "issue_id": 38388,
+    "link": "https://tracker.ceph.com/issues/38388"
+  },
+  "\"2026-01-28T23:31:58.663044+0000 mon.a (mon.0) 110 : cluster [WRN] Health check failed: 2 OSD(s) experiencing slow operations in BlueStore (BLUESTORE_SLOW_OP_ALERT)\" in cluster log": {
+    "issue_id": 21589,
+    "link": "https://tracker.ceph.com/issues/21589"
+  },
+  "\"2026-01-29T13:40:06.382273+0000 osd.0 (osd.0) 3 : cluster [WRN] OSD bench result of 115678.804381 IOPS is not within the threshold limit range of 1000.000000 IOPS and 80000.000000 IOPS for osd.0. IOPS capacity is unchanged at 21500.000000 IOPS. The recommendation is to establish the osd's IOPS capacity using other benchmark tools (e.g. Fio) and then override osd_mclock_max_capacity_iops_[hdd|ssd].\" in cluster log": {
+    "issue_id": 74501,
+    "link": "https://tracker.ceph.com/issues/74501"
+  },
+  "\"2026-01-29T07:10:43.990229+0000 osd.0 (osd.0) 3 : cluster [WRN] OSD bench result of 88673.091426 IOPS is not within the threshold limit range of 1000.000000 IOPS and 80000.000000 IOPS for osd.0. IOPS capacity is unchanged at 21500.000000 IOPS. The recommendation is to establish the osd's IOPS capacity using other benchmark tools (e.g. Fio) and then override osd_mclock_max_capacity_iops_[hdd|ssd].\" in cluster log": {
+    "issue_id": 74501,
+    "link": "https://tracker.ceph.com/issues/74501"
+  },
+  "\"2026-01-29T06:50:52.890333+0000 mon.a (mon.0) 163 : cluster [WRN] Health check failed: 2 OSD(s) experiencing slow operations in BlueStore (BLUESTORE_SLOW_OP_ALERT)\" in cluster log": {
+    "issue_id": 64870,
+    "link": "https://tracker.ceph.com/issues/64870"
+  },
+  "\"2026-01-29T06:06:30.861615+0000 osd.0 (osd.0) 4 : cluster [WRN] OSD bench result of 93676.276770 IOPS is not within the threshold limit range of 1000.000000 IOPS and 80000.000000 IOPS for osd.0. IOPS capacity is unchanged at 21500.000000 IOPS. The recommendation is to establish the osd's IOPS capacity using other benchmark tools (e.g. Fio) and then override osd_mclock_max_capacity_iops_[hdd|ssd].\" in cluster log": {
+    "issue_id": 74501,
+    "link": "https://tracker.ceph.com/issues/74501"
+  },
+  "\"2026-01-29T02:30:40.412766+0000 osd.0 (osd.0) 3 : cluster [WRN] OSD bench result of 111643.834138 IOPS is not within the threshold limit range of 1000.000000 IOPS and 80000.000000 IOPS for osd.0. IOPS capacity is unchanged at 21500.000000 IOPS. The recommendation is to establish the osd's IOPS capacity using other benchmark tools (e.g. Fio) and then override osd_mclock_max_capacity_iops_[hdd|ssd].\" in cluster log": {
+    "issue_id": 74501,
+    "link": "https://tracker.ceph.com/issues/74501"
+  },
+  "\"2026-01-29T13:43:14.048217+0000 mon.a (mon.0) 352 : cluster [WRN] Health check failed: 2 OSD(s) experiencing slow operations in BlueStore (BLUESTORE_SLOW_OP_ALERT)\" in cluster log": {
+    "issue_id": 69155,
+    "link": "https://tracker.ceph.com/issues/69155"
+  },
+  "Command failed (workunit test osd-backfill/osd-backfill-prio.sh) on smithi000 with status 1: 'mkdir -p -- /home/ubuntu/cephtest/mnt.0/client.0/tmp && cd -- /home/ubuntu/cephtest/mnt.0/client.0/tmp && CEPH_CLI_TEST_DUP_COMMAND=1 CEPH_REF=XXXXXXXXXXXXXXXXXX TESTDIR=\"/home/ubuntu/cephtest\" CEPH_ARGS=\"--cluster ceph\" CEPH_ID=\"0\" PATH=$PATH:/usr/sbin CEPH_BASE=/home/ubuntu/cephtest/clone.client.0 CEPH_ROOT=/home/ubuntu/cephtest/clone.client.0 CEPH_MNT=/home/ubuntu/cephtest/mnt.0 adjust-ulimits ceph-coverage /home/ubuntu/cephtest/archive/coverage timeout 3h /home/ubuntu/cephtest/clone.client.0/qa/standalone/osd-backfill/osd-backfill-prio.sh'": {},
+  "Command failed (workunit test mon/availability.sh) on smithi000 with status 1: 'mkdir -p -- /home/ubuntu/cephtest/mnt.0/client.0/tmp && cd -- /home/ubuntu/cephtest/mnt.0/client.0/tmp && CEPH_CLI_TEST_DUP_COMMAND=1 CEPH_REF=XXXXXXXXXXXXXXXXXX TESTDIR=\"/home/ubuntu/cephtest\" CEPH_ARGS=\"--cluster ceph\" CEPH_ID=\"0\" PATH=$PATH:/usr/sbin CEPH_BASE=/home/ubuntu/cephtest/clone.client.0 CEPH_ROOT=/home/ubuntu/cephtest/clone.client.0 CEPH_MNT=/home/ubuntu/cephtest/mnt.0 adjust-ulimits ceph-coverage /home/ubuntu/cephtest/archive/coverage timeout 3h /home/ubuntu/cephtest/clone.client.0/qa/standalone/mon/availability.sh'": {
+    "issue_id": 74540,
+    "link": "https://tracker.ceph.com/issues/74540"
+  },
+  "Command failed (workunit test dencoder/test-dencoder.sh) on smithi000 with status 1: 'mkdir -p -- /home/ubuntu/cephtest/mnt.0/client.0/tmp && cd -- /home/ubuntu/cephtest/mnt.0/client.0/tmp && CEPH_CLI_TEST_DUP_COMMAND=1 CEPH_REF=XXXXXXXXXXXXXXXXXX TESTDIR=\"/home/ubuntu/cephtest\" CEPH_ARGS=\"--cluster ceph\" CEPH_ID=\"0\" PATH=$PATH:/usr/sbin CEPH_BASE=/home/ubuntu/cephtest/clone.client.0 CEPH_ROOT=/home/ubuntu/cephtest/clone.client.0 CEPH_MNT=/home/ubuntu/cephtest/mnt.0 adjust-ulimits ceph-coverage /home/ubuntu/cephtest/archive/coverage timeout 3h /home/ubuntu/cephtest/clone.client.0/qa/workunits/dencoder/test-dencoder.sh'": {
+    "issue_id": 71077,
+    "link": "https://tracker.ceph.com/issues/71077"
+  },
+  "\"2026-01-28T01:31:42.590332+0000 mon.a (mon.0) 479 : cluster [WRN] Health check failed: 1 stray daemon(s) not managed by cephadm (CEPHADM_STRAY_DAEMON)\" in cluster log": {
+    "issue_id": 72424,
+    "link": "https://tracker.ceph.com/issues/72424"
+  },
+  "\"2026-01-28T19:48:20.287627+0000 mon.a (mon.0) 522 : cluster [WRN] Health check failed: Reduced data availability: 1 pg peering (PG_AVAILABILITY)\" in cluster log": {
+    "issue_id": 72424,
+    "link": "https://tracker.ceph.com/issues/72424"
+  },
+  "Command failed on smithi000 with status 1: \"sudo TESTDIR=/home/ubuntu/cephtest bash -c 'ceph_test_cls_rbd --gtest_filter=-TestClsRbd.get_features:TestClsRbd.parents:TestClsRbd.mirror'\"": {},
+  "Command failed (workunit test osd/osd-bluefs-volume-ops.sh) on smithi000 with status 1: 'mkdir -p -- /home/ubuntu/cephtest/mnt.0/client.0/tmp && cd -- /home/ubuntu/cephtest/mnt.0/client.0/tmp && CEPH_CLI_TEST_DUP_COMMAND=1 CEPH_REF=XXXXXXXXXXXXXXXXXX TESTDIR=\"/home/ubuntu/cephtest\" CEPH_ARGS=\"--cluster ceph\" CEPH_ID=\"0\" PATH=$PATH:/usr/sbin CEPH_BASE=/home/ubuntu/cephtest/clone.client.0 CEPH_ROOT=/home/ubuntu/cephtest/clone.client.0 CEPH_MNT=/home/ubuntu/cephtest/mnt.0 adjust-ulimits ceph-coverage /home/ubuntu/cephtest/archive/coverage timeout 3h /home/ubuntu/cephtest/clone.client.0/qa/standalone/osd/osd-bluefs-volume-ops.sh'": {
+    "issue_id": 50844,
+    "link": "https://tracker.ceph.com/issues/50844"
+  },
+  "Command failed (workunit test mon/mkfs.sh) on smithi000 with status 1: 'mkdir -p -- /home/ubuntu/cephtest/mnt.0/client.0/tmp && cd -- /home/ubuntu/cephtest/mnt.0/client.0/tmp && CEPH_CLI_TEST_DUP_COMMAND=1 CEPH_REF=XXXXXXXXXXXXXXXXXX TESTDIR=\"/home/ubuntu/cephtest\" CEPH_ARGS=\"--cluster ceph\" CEPH_ID=\"0\" PATH=$PATH:/usr/sbin CEPH_BASE=/home/ubuntu/cephtest/clone.client.0 CEPH_ROOT=/home/ubuntu/cephtest/clone.client.0 CEPH_MNT=/home/ubuntu/cephtest/mnt.0 adjust-ulimits ceph-coverage /home/ubuntu/cephtest/archive/coverage timeout 3h /home/ubuntu/cephtest/clone.client.0/qa/standalone/mon/mkfs.sh'": {},
+  "\"grep: /var/log/ceph/fac360d3-fc81-11f0-9e8a-d404e6e7d460/ceph.log: No such file or directory\" in cluster log": {},
+  "\"grep: /var/log/ceph/bfdb77ad-fc11-11f0-969d-d404e6e7d460/ceph.log: No such file or directory\" in cluster log": {},
+  "\"2026-01-28T10:59:49.424020+0000 osd.0 (osd.0) 4 : cluster [WRN] OSD bench result of 98716.488220 IOPS is not within the threshold limit range of 1000.000000 IOPS and 80000.000000 IOPS for osd.0. IOPS capacity is unchanged at 21500.000000 IOPS. The recommendation is to establish the osd's IOPS capacity using other benchmark tools (e.g. Fio) and then override osd_mclock_max_capacity_iops_[hdd|ssd].\" in cluster log": {
+    "issue_id": 74501,
+    "link": "https://tracker.ceph.com/issues/74501"
+  },
+  "\"2026-01-28T10:24:15.639956+0000 osd.0 (osd.0) 4 : cluster [WRN] OSD bench result of 108692.800957 IOPS is not within the threshold limit range of 1000.000000 IOPS and 80000.000000 IOPS for osd.0. IOPS capacity is unchanged at 21500.000000 IOPS. The recommendation is to establish the osd's IOPS capacity using other benchmark tools (e.g. Fio) and then override osd_mclock_max_capacity_iops_[hdd|ssd].\" in cluster log": {
+    "issue_id": 74501,
+    "link": "https://tracker.ceph.com/issues/74501"
+  },
+  "\"2026-02-04T04:31:20.037799+0000 mon.a (mon.0) 650 : cluster [WRN] Health check failed: 1 pool(s) do not have an application enabled (POOL_APP_NOT_ENABLED)\" in cluster log": {
+    "issue_id": 70467,
+    "link": "https://tracker.ceph.com/issues/70467"
+  },
+  "[\"Unexpected failure during module execution: [Errno 28] No space left on device: '/home/teuthworker/.ansible/tmp/ansible-local-3669133i8akglsx/tmp1lo4gpnm'\", \"Unexpected failure during module execution: [Errno 28] No space left on device: '/home/teuthworker/.ansible/tmp/ansible-local-3669133i8akglsx/tmp9rpsflq2'\"]": {
+    "issue_id": 74754,
+    "link": "https://tracker.ceph.com/issues/74754"
+  },
+  "\"2026-01-29T00:04:23.864321+0000 mon.f (mon.1) 157 : cluster [WRN] Health check failed: 2 network partitions detected (MON_NETSPLIT)\" in cluster log": {
+    "issue_id": 71451,
+    "link": "https://tracker.ceph.com/issues/71451"
+  },
+  "reached maximum tries (120) after waiting for 120 seconds": {
+    "issue_id": 74574,
+    "link": "https://tracker.ceph.com/issues/74574"
+  },
+  "b'2026-01-30T00:40:36.891 DEBUG:teuthology.exit:Finished running handlers'": {},
+  "\"2026-02-04T12:28:07.183370+0000 mon.smithi000 (mon.0) 688 : cluster [WRN] Health check failed: 1 stray daemon(s) not managed by cephadm (CEPHADM_STRAY_DAEMON)\" in cluster log": {
+    "issue_id": 65728,
+    "link": "https://tracker.ceph.com/issues/65728"
+  },
+  "Test failure: test_disable_stretch_mode (tasks.stretch_mode_disable_enable.TestStretchMode.test_disable_stretch_mode)": {},
+  "\"2026-02-10T16:36:15.778863+0000 mon.b (mon.1) 120 : cluster [WRN] Health check failed: 1 network partition detected (MON_NETSPLIT)\" in cluster log": {
+    "issue_id": 71451,
+    "link": "https://tracker.ceph.com/issues/71451"
+  },
+  "\"2026-02-04T23:30:00.000166+0000 mon.a (mon.0) 1356 : cluster [WRN]     pg 2.d is active+remapped+backfill_toofull, acting [9,3,2]\" in cluster log": {},
+  "Command failed on smithi000 with status 1: 'sudo /home/ubuntu/cephtest/cephadm --image quay.ceph.io/ceph-ci/ceph:adddf0ecd2d88c7de83a50c9f262beccb2f8584f-rockylinux-10 shell -c /etc/ceph/ceph.conf -k /etc/ceph/ceph.client.admin.keyring --fsid 35b732e6-06dd-11f1-9f12-d404e6e7d460 -- bash -c \\'set -ex\\n# since we don\\'\"\\'\"\\'t know the real hostnames before the test, the next\\n# bit is in order to replace the fake hostnames \"host.a/b/c\" with\\n# the actual names cephadm knows the host by within the mon spec\\nceph orch host ls --format json | jq -r \\'\"\\'\"\\'.[] | .hostname\\'\"\\'\"\\' > realnames\\necho $\\'\"\\'\"\\'host.a\\\\nhost.b\\\\nhost.c\\'\"\\'\"\\' > fakenames\\necho $\\'\"\\'\"\\'a\\\\nb\\\\nc\\'\"\\'\"\\' > mon_ids\\necho $\\'\"\\'\"\\'{datacenter=a}\\\\n{datacenter=b,rack=2}\\\\n{datacenter=a,rack=3}\\'\"\\'\"\\' > crush_locs\\nceph orch ls --service-name mon --export > mon.yaml\\nMONSPEC=`cat mon.yaml`\\necho \"$MONSPEC\"\\nwhile read realname <&3 && read fakename <&4; do\\n  MONSPEC=\"${MONSPEC//$fakename/$realname}\"\\ndone 3<realnames 4<fakenames\\necho \"$MONSPEC\" > mon.yaml\\ncat mon.yaml\\n# now the spec should have the real hostnames, so let\\'\"\\'\"\\'s re-apply\\nceph orch apply -i mon.yaml\\nsleep 90\\nceph orch ps --refresh\\nceph orch ls --service-name mon --export > mon.yaml; ceph orch apply -i mon.yaml\\nsleep 90\\nceph mon dump\\nceph mon dump --format json\\n# verify all the crush locations got set from \"ceph mon dump\" output\\nwhile read monid <&3 && read crushloc <&4; do\\n  ceph mon dump --format json | jq --arg monid \"$monid\" --arg crushloc \"$crushloc\" -e \\'\"\\'\"\\'.mons | .[] | select(.name == $monid) | .crush_location == $crushloc\\'\"\\'\"\\'\\ndone 3<mon_ids 4<crush_locs\\n\\''": {
+    "issue_id": 68586,
+    "link": "https://tracker.ceph.com/issues/68586"
+  },
+  "Command failed on smithi000 with status 127: 'sudo /home/ubuntu/cephtest/cephadm --image quay.ceph.io/ceph-ci/ceph:adddf0ecd2d88c7de83a50c9f262beccb2f8584f-rockylinux-10 shell -c /etc/ceph/ceph.conf -k /etc/ceph/ceph.client.admin.keyring --fsid 296fe2f8-06dc-11f1-af5a-d404e6e7d460 -- bash -c \\'set -ex\\n# Deploy monitoring stack\\nceph orch apply node-exporter\\nceph orch apply grafana\\nceph orch apply alertmanager\\nceph orch apply prometheus\\nsleep 240\\n# generate SSL certificate\\nopenssl req -x509 -newkey rsa:4096 -keyout /tmp/key.pem -out /tmp/cert.pem -sha256 -days 30 -nodes -subj \"/CN=*\"\\n# Generate a mgmt.spec template\\ncat << EOT > /tmp/mgmt.spec\\nservice_type: mgmt-gateway\\nservice_id: foo\\nplacement:\\n  hosts:\\n    - ${HOSTNAME}\\nspec:\\n  ssl_protocols:\\n    - TLSv1.2\\n    - TLSv1.3\\n  ssl_ciphers:\\n    - AES128-SHA\\n    - AES256-SHA\\n  enable_health_check_endpoint: True\\nEOT\\n# Add generated certificates to spec file\\necho \"  ssl_cert: |\" >> /tmp/mgmt.spec\\nwhile read LINE; do echo $LINE | sed -e \"s/^/    /\"; done < /tmp/cert.pem >> /tmp/mgmt.spec\\necho \"  ssl_key: |\" >> /tmp/mgmt.spec\\nwhile read LINE; do echo $LINE | sed -e \"s/^/    /\"; done < /tmp/key.pem >> /tmp/mgmt.spec\\n# Apply spec\\nceph orch apply -i /tmp/mgmt.spec\\n\\''": {
+    "issue_id": 74860,
+    "link": "https://tracker.ceph.com/issues/74860"
+  },
+  "Command failed (workunit test cephadm/test_iscsi_setup.sh) on smithi000 with status 1: 'mkdir -p -- /home/ubuntu/cephtest/mnt.0/client.0/tmp && cd -- /home/ubuntu/cephtest/mnt.0/client.0/tmp && CEPH_CLI_TEST_DUP_COMMAND=1 CEPH_REF=XXXXXXXXXXXXXXXXXX TESTDIR=\"/home/ubuntu/cephtest\" CEPH_ARGS=\"--cluster ceph\" CEPH_ID=\"0\" PATH=$PATH:/usr/sbin CEPH_BASE=/home/ubuntu/cephtest/clone.client.0 CEPH_ROOT=/home/ubuntu/cephtest/clone.client.0 CEPH_MNT=/home/ubuntu/cephtest/mnt.0 adjust-ulimits ceph-coverage /home/ubuntu/cephtest/archive/coverage timeout 3h /home/ubuntu/cephtest/clone.client.0/qa/workunits/cephadm/test_iscsi_setup.sh'": {
+    "issue_id": 74523,
+    "link": "https://tracker.ceph.com/issues/74523"
+  },
+  "\"2026-02-11T00:02:32.441614+0000 mon.a (mon.0) 446 : cluster [WRN] Health check failed: 1 failed cephadm daemon(s) (CEPHADM_FAILED_DAEMON)\" in cluster log": {
+    "issue_id": 49591,
+    "link": "https://tracker.ceph.com/issues/49591"
+  },
+  "Test failure: test_urls (tasks.mgr.test_prometheus.TestPrometheus.test_urls)": {},
+  "Test failure: test_sql_autocommit1 (tasks.mgr.test_devicehealth.TestDeviceHealth.test_sql_autocommit1)": {}
 }

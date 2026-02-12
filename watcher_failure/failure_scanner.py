@@ -28,6 +28,7 @@ def normalize_machine_name(log_string: str) -> str:
     Normalize machine-specific details in a log string for consistent grouping.
     """
     s = re.sub(r'smithi\d+', 'smithi000', log_string)
+    s = re.sub(r'trial\d+', 'smithi000', s)
     s = re.sub(r'CEPH_REF=[a-f0-9]+', 'CEPH_REF=XXXXXXXXXXXXXXXXXX', s)
     return s
 
@@ -66,7 +67,7 @@ class LogParser:
     """
     FAILURE_RE = re.compile(r'^(?:Failure:|Timeout:?)\s*(.*)', re.MULTILINE)
     DEAD_RE    = re.compile(r'Dead: (.+)')
-    JOB_RE     = re.compile(r'(\d{7,})')
+    JOB_RE     = re.compile(r'(\d+)')
     DATE_RE    = re.compile(r'(\d{4}-\d{2}-\d{2})_')
 
     def __init__(self, verbose: bool = False) -> None:
@@ -80,7 +81,7 @@ class LogParser:
         lines = file_path.read_text().splitlines()
         logger.debug(f"\n\n\nParsing file: {file_path}\n")
         for line in lines:
-            #logger.debug(f"Processing line: {line.strip()}\n")
+            logger.debug(f"Processing line: {line.strip()}\n")
             # High-importance backtrace marker
             if "MAX_BACKTRACE_LINES" in line:
                 current_reason = "BACKTRACE"
@@ -94,11 +95,13 @@ class LogParser:
 
             m = self.FAILURE_RE.search(line)
             if m:
+                logger.debug(f"Matched FAILURE_RE: {line.strip()}\n")
                 # add back timeout keyword since it was stripped
                 if line.startswith("Timeout"):
                     normalized = normalize_machine_name("Timeout " + m.group(1))
                 else:
                     normalized = normalize_machine_name(m.group(1))
+                logger.debug(f"Normalized failure reason: {normalized}\n")
                 current_reason = convert_reason(normalized)
                 if self.verbose:
                     logger.debug(f"Detected failure reason: {current_reason}")
@@ -114,15 +117,21 @@ class LogParser:
 
             # Extract job IDs
             if current_reason:
-                for job in self.JOB_RE.findall(line):
-                    failures.append(FailureRecord(
-                        directory=str(file_path.parent),
-                        date=self._extract_date(file_path),
-                        reason=current_reason,
-                        job_id=job,
-
-                    ))
-                current_reason = None  # Reset after processing job IDs
+                logger.debug(f"Current reason set to: {current_reason} for line: {line.strip()}\n")
+                if "jobs:" in line:
+                    for job in self.JOB_RE.findall(line):
+                        logger.debug(f"Found job ID: {job} for reason: {current_reason}")
+                        failures.append(FailureRecord(
+                            directory=str(file_path.parent),
+                            date=self._extract_date(file_path),
+                            reason=current_reason,
+                            job_id=job,
+                        ))
+                    current_reason = None  # Reset after processing job IDs
+                else:
+                    logger.debug(f"No job IDs found in line: {line.strip()}\n")
+            else:
+                logger.debug(f"No current reason set for line: {line.strip()}\n")
 
             # Handle "NN jobs" summary lines
             #m2 = re.search(r'(\d+) jobs', line)

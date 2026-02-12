@@ -41,7 +41,7 @@ class Config:
         #self.flavors  = ['default', 'crimson']
         self.bot_users = ['bharath', 'teuthology', 'yuriw','skanta']
 
-        self.redmine_config_path  = os.environ.get('REDMINE_CONFIG', '~/.redmin')
+        self.redmine_config_path  = os.environ.get('REDMINE_CONFIG', '~/.redmine')
         cache_file = 'tracker_cache.json'
         cache_env = os.environ.get("TRACKER_CACHE")
         cache_path = Path(cache_env).expanduser() if cache_env else Path(cache_file).expanduser()
