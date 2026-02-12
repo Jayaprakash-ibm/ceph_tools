@@ -130,6 +130,8 @@ def parse_args():
     parser.add_argument("--no-date", "--no-postfix", action="store_true",
                         help="Don't add date postfix to branch name")
     parser.add_argument("--repo", default=REPO)
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Dry run mode: check what would be done without making changes")
     parser.add_argument("--trailer", action="append", dest='trailers')
     parser.add_argument('--ceph-build-job', action="append", dest='trailers',
                         type=lambda v: f'CEPH-BUILD-JOB: {v}')
@@ -158,6 +160,17 @@ def main():
         sys.exit("--- no PRs found, nothing to do")
     print(f"--- queried {len(prs)} prs")
 
+    if cli.dry_run:
+        print("--- dry-run mode: summary of changes")
+        print(f"  Would create branch: {branch}")
+        print(f"  Would merge {len(prs)} PRs:")
+        for pr in prs:
+            print(f"    {pr['url']} - {pr['title']}")
+        if cli.trailers:
+            print(f"  Would add trailers: {cli.trailers}")
+        print("--- no changes made")
+        return
+
     # Assemble branch
     print(f'--- creating branch {branch}')
     git('branch', '-D', branch, capture_output=True)  # silent if missing
@@ -175,10 +188,10 @@ def main():
         sys.exit(1)
 
     refs = ', '.join(f"prs/{pr['number']}" for pr in prs)
-    message = 'Merged branches ' + refs
+    message = f"Merged branches {refs}\n"
     if cli.trailers:
-        message += '\n' + '\n'.join(cli.trailers)
-    cmd = ['git', 'commit', '--allow-empty', '--amend', '-m', message]
+        message += '\n' + '\n'.join(cli.trailers) + '\n'
+    cmd = ['git', 'commit', '--allow-empty', '-m', message]
     if run(cmd).returncode != 0:
         sys.exit('Failed to amend final commit!')
 
