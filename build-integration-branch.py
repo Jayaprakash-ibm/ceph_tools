@@ -90,7 +90,7 @@ def get_postfix():
         print(f"Adding current branch name '-{branch}' as a postfix")
     return postfix
 
-def fetch_prs(label, pr_numbers, repo, via_cherry_pick=False):
+def fetch_prs(label, pr_numbers, skip_prs, repo, via_cherry_pick=False):
     prs, seen = [], set()
 
     for num in (pr_numbers or []):
@@ -105,12 +105,14 @@ def fetch_prs(label, pr_numbers, repo, via_cherry_pick=False):
 
     if label:
         labeled = gh('pr', 'list', '--repo', repo, '--label', label,
-                      '--json', PR_FIELDS, '--limit', '200',
-                      '--state', 'all') or []
+              '--json', PR_FIELDS, '--limit', '200',
+              '--state', 'all') or []
+        labeled = [p for p in labeled 
+           if p['state'] in ('OPEN', 'open', 'MERGED', 'merged')]
         labeled.sort(key=lambda p: (pr_priority(p), p['number']))
         print(f"--- found {len(labeled)} PRs tagged with '{label}'")
         for pr in labeled:
-            if pr['number'] not in seen:
+            if pr['number'] not in seen and pr['number'] not in skip_prs:
                 seen.add(pr['number'])
                 prs.append(pr)
 
@@ -376,6 +378,7 @@ def parse_args():
     parser = argparse.ArgumentParser(usage=__doc__)
     parser.add_argument("label", nargs='?', default=None, help="GitHub label to search for")
     parser.add_argument("--pr", type=lambda v: [int(x) for x in v.split(',')], default=[], help="Comma-separated PR numbers")
+    parser.add_argument("--skip-pr", type=lambda v: [int(x) for x in v.split(',')], default=[], help="Comma-separated PR numbers to skip (only with --label)")
     parser.add_argument("--branch-name", help="Override branch name")
     parser.add_argument("--no-date", "--no-postfix", action="store_true", help="Don't add date postfix to branch name")
     parser.add_argument("--repo", default=REPO)
@@ -404,7 +407,7 @@ def main():
 
     # Fetch PRs before the dry-run check so we can show warnings about
     # PRs targeting the wrong base branch and the full list that would be processed.
-    prs = fetch_prs(cli.label, cli.pr, cli.repo, via_cherry_pick=via_cherry_pick)
+    prs = fetch_prs(cli.label, cli.pr, set(cli.skip_pr), cli.repo, via_cherry_pick=via_cherry_pick)
     if not prs:
         sys.exit("--- no PRs found, nothing to do")
     print(f"--- queued {len(prs)} PRs")
