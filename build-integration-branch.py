@@ -424,8 +424,8 @@ def main():
             print(f"  [+] PR #{pr['number']} [{pr['state']}] (-> {target}) - {pr['title']} author: {pr.get('author', {}).get('login', 'unknown')}")
             print(f"      {pr['url']}")
 
-        # Easy copy-paste for the next run
-        pr_list = ','.join(str(pr['number']) for pr in prs)
+        # Easy copy-paste for the next run, without merged or closed PRs that would be skipped anyway.
+        pr_list = ','.join(str(pr['number']) for pr in prs if pr['state'] in ('OPEN', 'open'))
         print(f"\n--- copy-paste ready:")
         print(f"  --pr {pr_list}")
 
