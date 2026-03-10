@@ -52,7 +52,7 @@ class GenericReason(Reason):
 
         self.backtrace = job.get_backtrace()
         if self.backtrace:
-            log.debug("Found a backtrace!\n{0}".format(self.backtrace))
+            print("Found a backtrace!\n{0}".format(self.backtrace))
 
     def get_detail(self):
         return self.backtrace
@@ -474,7 +474,7 @@ def give_me_a_reason(job):
 class Scraper(object):
     def __init__(self, target_dir):
         self.target_dir = target_dir
-        log.addHandler(logging.FileHandler(os.path.join("/home/nmordech",
+        log.addHandler(logging.FileHandler(os.path.join("/home/jayaprakash",
                                                      "scrape.log")))
 
     def analyze(self):
@@ -508,21 +508,21 @@ class Scraper(object):
             if not matched:
                 reasons[give_me_a_reason(job)].append(job)
 
-        print("Found {0} distinct failure reasons".format(len(reasons)))
+        log.debug("Found {0} distinct failure reasons".format(len(reasons)))
         for reason, jobs in list(reasons.items()):
             job_spec = "{0} jobs: {1}".format(len(jobs), [j.job_id for j in jobs]) if len(jobs) < 30 else "{0} jobs".format(len(jobs))
-            print(reason.get_description())
+            log.debug(reason.get_description())
             detail = reason.get_detail()
             if detail:
-                print(detail)
-            print(job_spec)
+                log.debug(detail)
+            log.debug(job_spec)
             suites = [set(j.description.split()) for j in jobs if j.description != None]
             if len(suites) > 1:
-                print("suites intersection: {0}".format(sorted(set.intersection(*suites))))
-                print("suites union: {0}".format(sorted(set.union(*suites))))
+                log.debug("suites intersection: {0}".format(sorted(set.intersection(*suites))))
+                log.debug("suites union: {0}".format(sorted(set.union(*suites))))
             elif len(suites) == 1:
-                print("suites: {0}".format(sorted(suites[0])))
-            print("")
+                log.debug("suites: {0}".format(sorted(suites[0])))
+            log.debug("")
 
 if __name__ == '__main__':
     Scraper(sys.argv[1]).analyze()
